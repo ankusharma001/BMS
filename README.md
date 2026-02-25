@@ -45,12 +45,12 @@ cp .env.example .env
 # Then edit .env with your real credentials (see below)
 
 npm install
-npm run dev     # Starts on http://localhost:5000
+npm run dev     # Starts on http://localhost:6000
 ```
 
 **Required `.env` values:**
 ```env
-PORT=5000
+PORT=6000
 NODE_ENV=development
 
 SUPABASE_URL=https://xxxx.supabase.co
@@ -74,7 +74,7 @@ npm install
 npm run dev     # Starts on http://localhost:5173
 ```
 
-The frontend proxies all `/api` calls to `http://localhost:5000` automatically.
+The frontend proxies all `/api` calls to `http://localhost:6000` automatically.
 
 ### 4. Create Admin User
 After running the schema and creating your first user via signup:
