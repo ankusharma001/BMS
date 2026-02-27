@@ -26,6 +26,10 @@ const productSchema = new mongoose.Schema({
         ref: 'Category',
         required: true
     },
+    subcategory_id: {
+        type: String,
+        default: null
+    },
     image_url: {
         type: String,
         default: null
@@ -35,6 +39,11 @@ const productSchema = new mongoose.Schema({
         default: 0,
         min: 0,
         max: 5
+    },
+    review_count: {
+        type: Number,
+        default: 0,
+        min: 0
     },
     is_active: {
         type: Boolean,

@@ -32,6 +32,10 @@ router.post('/categories', adminController.createCategory);
 router.put('/categories/:id', adminController.updateCategory);
 router.delete('/categories/:id', adminController.deleteCategory);
 
+// ── Subcategories ─────────────────────────────────────────
+router.post('/categories/:id/subcategories', adminController.addSubcategory);
+router.delete('/categories/:id/subcategories/:subId', adminController.removeSubcategory);
+
 // ── Orders ────────────────────────────────────────────────
 router.get('/orders', adminController.getAllOrders);
 router.put('/orders/:id/status', adminController.updateOrderStatus);
@@ -50,5 +54,14 @@ router.get('/payments', adminController.getAllPayments);
 router.get('/reports/sales-summary', adminController.getSalesSummary);
 router.get('/reports/top-products', adminController.getTopProducts);
 router.get('/reports/low-stock', adminController.getLowStock);
+
+// ── Reviews ───────────────────────────────────────────────
+router.get('/reviews', adminController.getAllReviews);
+router.delete('/reviews/:id', adminController.deleteReview);
+router.put('/reviews/:id/toggle', adminController.toggleReviewApproval);
+
+// ── Settings ──────────────────────────────────────────────
+router.get('/settings', adminController.getSettings);
+router.put('/settings', adminController.updateSetting);
 
 module.exports = router;

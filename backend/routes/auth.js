@@ -36,6 +36,39 @@ router.post('/refresh', authController.refresh);
 // POST /api/auth/logout
 router.post('/logout', authController.logout);
 
+// POST /api/auth/forgot-password — send verification code
+router.post(
+    '/forgot-password',
+    [
+        body('email').isEmail().normalizeEmail().withMessage('Valid email required')
+    ],
+    validate,
+    authController.forgotPassword
+);
+
+// POST /api/auth/verify-reset-code — verify the code
+router.post(
+    '/verify-reset-code',
+    [
+        body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+        body('code').notEmpty().withMessage('Verification code required')
+    ],
+    validate,
+    authController.verifyResetCode
+);
+
+// POST /api/auth/reset-password — set new password
+router.post(
+    '/reset-password',
+    [
+        body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+        body('code').notEmpty().withMessage('Verification code required'),
+        body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+    ],
+    validate,
+    authController.resetPassword
+);
+
 // ── Protected routes (auth required) ─────────────────────────
 
 // GET /api/auth/me — get current user

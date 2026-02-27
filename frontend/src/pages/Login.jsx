@@ -91,6 +91,12 @@ export default function Login() {
                             />
                         </div>
 
+                        <div className="text-right">
+                            <Link to="/forgot-password" className="text-sm text-brown-500 hover:text-brown-700 hover:underline transition-colors">
+                                Forgot password?
+                            </Link>
+                        </div>
+
                         <button type="submit" disabled={loading}
                             className="btn-primary w-full mt-2 disabled:opacity-60 flex items-center justify-center gap-2">
                             {loading ? (

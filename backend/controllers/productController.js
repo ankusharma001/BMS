@@ -4,7 +4,7 @@ const Category = require('../models/Category');
 // GET /api/products
 const getProducts = async (req, res) => {
     try {
-        const { category, search, sort = 'created_at', order = 'desc', page = 1, limit = 20 } = req.query;
+        const { category, subcategory, search, sort = 'created_at', order = 'desc', page = 1, limit = 20 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const filter = { is_active: true };
@@ -19,7 +19,18 @@ const getProducts = async (req, res) => {
             if (!cat) {
                 cat = await Category.findOne({ name: new RegExp(`^${category}$`, 'i') });
             }
-            if (cat) filter.category_id = cat._id;
+            if (cat) {
+                filter.category_id = cat._id;
+
+                // Subcategory filter
+                if (subcategory) {
+                    const sub = cat.subcategories.find(s =>
+                        s._id.toString() === subcategory ||
+                        s.name.toLowerCase() === subcategory.toLowerCase()
+                    );
+                    if (sub) filter.subcategory_id = sub._id.toString();
+                }
+            }
         }
 
         // Search filter
@@ -34,7 +45,7 @@ const getProducts = async (req, res) => {
 
         const [products, total] = await Promise.all([
             Product.find(filter)
-                .populate('category_id', 'id name')
+                .populate('category_id', 'id name subcategories')
                 .sort(sortObj)
                 .skip(skip)
                 .limit(parseInt(limit))
@@ -43,11 +54,20 @@ const getProducts = async (req, res) => {
         ]);
 
         // Map to match frontend expected shape (categories field)
-        const mapped = products.map(p => ({
-            ...p,
-            id: p._id,
-            categories: p.category_id ? { id: p.category_id._id, name: p.category_id.name } : null
-        }));
+        const mapped = products.map(p => {
+            const cat = p.category_id;
+            let subcategoryName = null;
+            if (cat && p.subcategory_id && cat.subcategories) {
+                const sub = cat.subcategories.find(s => s._id.toString() === p.subcategory_id);
+                subcategoryName = sub ? sub.name : null;
+            }
+            return {
+                ...p,
+                id: p._id,
+                categories: cat ? { id: cat._id, name: cat.name, subcategories: cat.subcategories } : null,
+                subcategory_name: subcategoryName
+            };
+        });
 
         res.json({
             products: mapped,
@@ -86,17 +106,25 @@ const getProduct = async (req, res) => {
         }
 
         const product = await Product.findOne({ _id: id, is_active: true })
-            .populate('category_id', 'id name')
+            .populate('category_id', 'id name subcategories')
             .lean();
 
         if (!product) {
             return res.status(404).json({ error: 'Product not found.' });
         }
 
+        const cat = product.category_id;
+        let subcategoryName = null;
+        if (cat && product.subcategory_id && cat.subcategories) {
+            const sub = cat.subcategories.find(s => s._id.toString() === product.subcategory_id);
+            subcategoryName = sub ? sub.name : null;
+        }
+
         const mapped = {
             ...product,
             id: product._id,
-            categories: product.category_id ? { id: product.category_id._id, name: product.category_id.name } : null
+            categories: cat ? { id: cat._id, name: cat.name, subcategories: cat.subcategories } : null,
+            subcategory_name: subcategoryName
         };
 
         res.json({ product: mapped });

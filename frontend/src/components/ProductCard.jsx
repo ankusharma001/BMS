@@ -45,11 +45,16 @@ export default function ProductCard({ product }) {
                     <h3 className="font-semibold text-brown-800 text-sm leading-tight line-clamp-1">{product.name}</h3>
                 </div>
                 {product.categories?.name && (
-                    <span className="badge badge-brown text-xs mb-2">{product.categories.name}</span>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        <span className="badge badge-brown text-xs">{product.categories.name}</span>
+                        {product.subcategory_name && (
+                            <span className="badge badge-blue text-xs">{product.subcategory_name}</span>
+                        )}
+                    </div>
                 )}
                 <p className="text-brown-400 text-xs line-clamp-2 mb-3">{product.description}</p>
 
-                <RatingStars rating={product.rating} size="sm" />
+                <RatingStars rating={product.rating} count={product.review_count} size="sm" />
 
                 <div className="flex items-center justify-between mt-3">
                     <span className="text-brown-700 font-bold text-lg">₹{parseFloat(product.price).toFixed(0)}</span>

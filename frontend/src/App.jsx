@@ -11,6 +11,7 @@ import Checkout from './pages/Checkout'
 import OrderSuccess from './pages/OrderSuccess'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
 import MyOrders from './pages/MyOrders'
 import About from './pages/About'
 import Contact from './pages/Contact'
@@ -18,10 +19,12 @@ import UserDashboard from './pages/UserDashboard'
 
 // Admin
 import AdminLogin from './pages/admin/AdminLogin'
+import AdminForgotPassword from './pages/admin/AdminForgotPassword'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminReports from './pages/admin/AdminReports'
+import AdminReviews from './pages/admin/AdminReviews'
 
 // Guards
 import PrivateRoute from './components/PrivateRoute'
@@ -35,6 +38,7 @@ export default function App() {
             <Routes>
                 {/* Admin routes — no public navbar/footer */}
                 <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
                 <Route path="/admin/*" element={
                     <AdminRoute>
                         <Routes>
@@ -42,6 +46,7 @@ export default function App() {
                             <Route path="products" element={<AdminProducts />} />
                             <Route path="orders" element={<AdminOrders />} />
                             <Route path="reports" element={<AdminReports />} />
+                            <Route path="reviews" element={<AdminReviews />} />
                         </Routes>
                     </AdminRoute>
                 } />
@@ -58,6 +63,7 @@ export default function App() {
                                 <Route path="/cart" element={<Cart />} />
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/signup" element={<Signup />} />
+                                <Route path="/forgot-password" element={<ForgotPassword />} />
                                 <Route path="/about" element={<About />} />
                                 <Route path="/contact" element={<Contact />} />
                                 <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />

@@ -4,21 +4,32 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Payment = require('../models/Payment');
 const InventoryLog = require('../models/InventoryLog');
+const Review = require('../models/Review');
+const Setting = require('../models/Setting');
 
 // ── Products ──────────────────────────────────────────────
 
 const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find()
-            .populate('category_id', 'name')
+            .populate('category_id', 'name subcategories')
             .sort({ created_at: -1 })
             .lean();
 
-        const mapped = products.map(p => ({
-            ...p,
-            id: p._id,
-            categories: p.category_id ? { id: p.category_id._id, name: p.category_id.name } : null
-        }));
+        const mapped = products.map(p => {
+            const cat = p.category_id;
+            let subcategoryName = null;
+            if (cat && p.subcategory_id && cat.subcategories) {
+                const sub = cat.subcategories.find(s => s._id.toString() === p.subcategory_id);
+                subcategoryName = sub ? sub.name : null;
+            }
+            return {
+                ...p,
+                id: p._id,
+                categories: cat ? { id: cat._id, name: cat.name } : null,
+                subcategory_name: subcategoryName
+            };
+        });
 
         res.json({ products: mapped });
     } catch (err) {
@@ -29,7 +40,7 @@ const getAllProducts = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        const { name, description, price, stock, category_id, image_url, is_active = true } = req.body;
+        const { name, description, price, stock, category_id, subcategory_id, image_url, is_active = true } = req.body;
 
         const product = await Product.create({
             name,
@@ -37,6 +48,7 @@ const createProduct = async (req, res) => {
             price: parseFloat(price),
             stock: parseInt(stock) || 0,
             category_id,
+            subcategory_id: subcategory_id || null,
             image_url,
             is_active
         });
@@ -53,7 +65,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, stock, category_id, image_url, is_active, rating } = req.body;
+        const { name, description, price, stock, category_id, subcategory_id, image_url, is_active, rating } = req.body;
 
         const updates = {};
         if (name !== undefined) updates.name = name;
@@ -61,6 +73,7 @@ const updateProduct = async (req, res) => {
         if (price !== undefined) updates.price = parseFloat(price);
         if (stock !== undefined) updates.stock = parseInt(stock);
         if (category_id !== undefined) updates.category_id = category_id;
+        if (subcategory_id !== undefined) updates.subcategory_id = subcategory_id;
         if (image_url !== undefined) updates.image_url = image_url;
         if (is_active !== undefined) updates.is_active = is_active;
         if (rating !== undefined) updates.rating = parseFloat(rating);
@@ -101,10 +114,15 @@ const getCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
     try {
-        const { name, description, image_url } = req.body;
+        const { name, description, image_url, subcategories } = req.body;
         if (!name) return res.status(400).json({ error: 'Category name is required.' });
 
-        const category = await Category.create({ name, description, image_url });
+        const category = await Category.create({
+            name,
+            description,
+            image_url,
+            subcategories: subcategories || []
+        });
         const result = category.toObject();
         result.id = result._id;
         res.status(201).json({ message: 'Category created.', category: result });
@@ -118,12 +136,13 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, image_url } = req.body;
+        const { name, description, image_url, subcategories } = req.body;
 
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (description !== undefined) updates.description = description;
         if (image_url !== undefined) updates.image_url = image_url;
+        if (subcategories !== undefined) updates.subcategories = subcategories;
 
         const category = await Category.findByIdAndUpdate(id, updates, { new: true }).lean();
         if (!category) return res.status(404).json({ error: 'Category not found.' });
@@ -142,6 +161,51 @@ const deleteCategory = async (req, res) => {
         res.json({ message: 'Category deleted.' });
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete category.' });
+    }
+};
+
+// ── Subcategory management ────────────────────────────────
+
+const addSubcategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description } = req.body;
+        if (!name) return res.status(400).json({ error: 'Subcategory name is required.' });
+
+        const category = await Category.findById(id);
+        if (!category) return res.status(404).json({ error: 'Category not found.' });
+
+        // Check for duplicate
+        const exists = category.subcategories.some(s => s.name.toLowerCase() === name.toLowerCase());
+        if (exists) return res.status(400).json({ error: 'Subcategory already exists in this category.' });
+
+        category.subcategories.push({ name, description: description || null });
+        await category.save();
+
+        const result = category.toObject();
+        result.id = result._id;
+        res.status(201).json({ message: 'Subcategory added.', category: result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to add subcategory.' });
+    }
+};
+
+const removeSubcategory = async (req, res) => {
+    try {
+        const { id, subId } = req.params;
+        const category = await Category.findById(id);
+        if (!category) return res.status(404).json({ error: 'Category not found.' });
+
+        category.subcategories = category.subcategories.filter(s => s._id.toString() !== subId);
+        await category.save();
+
+        const result = category.toObject();
+        result.id = result._id;
+        res.json({ message: 'Subcategory removed.', category: result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to remove subcategory.' });
     }
 };
 
@@ -418,12 +482,126 @@ const getAllPayments = async (req, res) => {
     }
 };
 
+// ── Reviews Management ────────────────────────────────────
+
+const getAllReviews = async (req, res) => {
+    try {
+        const reviews = await Review.find()
+            .sort({ created_at: -1 })
+            .lean();
+
+        for (const review of reviews) {
+            review.id = review._id;
+            const user = await User.findById(review.user_id).select('full_name email').lean();
+            review.user = user || { full_name: 'Deleted User', email: '' };
+            const product = await Product.findById(review.product_id).select('name image_url').lean();
+            review.product = product || { name: 'Deleted Product' };
+        }
+
+        res.json({ reviews });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch reviews.' });
+    }
+};
+
+const deleteReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const review = await Review.findById(id);
+        if (!review) return res.status(404).json({ error: 'Review not found.' });
+
+        const productId = review.product_id;
+        await Review.findByIdAndDelete(id);
+
+        // Recalculate rating
+        const stats = await Review.aggregate([
+            { $match: { product_id: productId, is_approved: true } },
+            { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+        ]);
+        await Product.findByIdAndUpdate(productId, {
+            rating: stats[0]?.avg ? Math.round(stats[0].avg * 10) / 10 : 0,
+            review_count: stats[0]?.count || 0
+        });
+
+        res.json({ message: 'Review deleted.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete review.' });
+    }
+};
+
+const toggleReviewApproval = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const review = await Review.findById(id);
+        if (!review) return res.status(404).json({ error: 'Review not found.' });
+
+        review.is_approved = !review.is_approved;
+        await review.save();
+
+        // Recalculate rating
+        const stats = await Review.aggregate([
+            { $match: { product_id: review.product_id, is_approved: true } },
+            { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+        ]);
+        await Product.findByIdAndUpdate(review.product_id, {
+            rating: stats[0]?.avg ? Math.round(stats[0].avg * 10) / 10 : 0,
+            review_count: stats[0]?.count || 0
+        });
+
+        res.json({ message: `Review ${review.is_approved ? 'approved' : 'hidden'}.`, review });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to toggle review.' });
+    }
+};
+
+// ── Settings ──────────────────────────────────────────────
+
+const getSettings = async (req, res) => {
+    try {
+        const settings = await Setting.find().lean();
+        const mapped = {};
+        settings.forEach(s => { mapped[s.key] = s.value; });
+
+        // Defaults
+        if (mapped.reviews_enabled === undefined) mapped.reviews_enabled = true;
+
+        res.json({ settings: mapped });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch settings.' });
+    }
+};
+
+const updateSetting = async (req, res) => {
+    try {
+        const { key, value } = req.body;
+        if (!key) return res.status(400).json({ error: 'Setting key is required.' });
+
+        await Setting.findOneAndUpdate(
+            { key },
+            { key, value },
+            { upsert: true, new: true }
+        );
+
+        res.json({ message: 'Setting updated.', key, value });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to update setting.' });
+    }
+};
+
 module.exports = {
     getAllProducts, createProduct, updateProduct, deleteProduct,
     getCategories, createCategory, updateCategory, deleteCategory,
+    addSubcategory, removeSubcategory,
     getAllOrders, updateOrderStatus,
     getAllUsers, updateUserRole,
     getInventoryLogs,
     getSalesSummary, getTopProducts, getLowStock,
-    getAllPayments
+    getAllPayments,
+    getAllReviews, deleteReview, toggleReviewApproval,
+    getSettings, updateSetting
 };

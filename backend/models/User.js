@@ -35,6 +35,15 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String,
         default: null
+    },
+    // Password reset fields
+    reset_code: {
+        type: String,
+        default: null
+    },
+    reset_code_expires: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
@@ -52,6 +61,8 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.methods.toJSON = function () {
     const obj = this.toObject();
     delete obj.password;
+    delete obj.reset_code;
+    delete obj.reset_code_expires;
     return obj;
 };
 

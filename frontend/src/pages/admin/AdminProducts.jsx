@@ -2,23 +2,109 @@ import { useEffect, useState } from 'react'
 import AdminSidebar from '../../components/AdminSidebar'
 import api from '../../services/api'
 
-const EMPTY_FORM = { name: '', description: '', price: '', stock: '', category_id: '', image_url: '', is_active: true }
+const EMPTY_FORM = { name: '', description: '', price: '', stock: '', category_id: '', subcategory_id: '', image_url: '', is_active: true }
 
-// ── Predefined bakery categories to seed if table is empty ──
+// ── Predefined bakery categories with subcategories ──
 const DEFAULT_BAKERY_CATEGORIES = [
-    { name: 'Cakes', description: 'Birthday, wedding, and celebration cakes' },
-    { name: 'Cookies & Biscuits', description: 'Freshly baked cookies, biscuits, and rusks' },
-    { name: 'Pastries', description: 'Puffs, croissants, danishes, and tarts' },
-    { name: 'Breads', description: 'Artisan breads, sandwich loaves, buns, and rolls' },
-    { name: 'Indian Sweets', description: 'Gulab jamun, rasgulla, barfi, laddu, and more' },
-    { name: 'Dry Fruits & Nuts', description: 'Premium dry fruits, roasted nuts, and trail mixes' },
-    { name: 'Chocolates', description: 'Handcrafted chocolates, truffles, and pralines' },
-    { name: 'Ice Cream & Frozen', description: 'Ice creams, kulfis, popsicles, and frozen desserts' },
-    { name: 'Beverages', description: 'Milkshakes, lassi, smoothies, and specialty drinks' },
-    { name: 'Cupcakes & Muffins', description: 'Gourmet cupcakes, muffins, and brownies' },
-    { name: 'Namkeen & Savoury', description: 'Namkeen, samosa, kachori, and savoury snacks' },
-    { name: 'Festival Specials', description: 'Diwali, Holi, Rakhi, and seasonal specials' },
-    { name: 'Gift Boxes', description: 'Curated gift hampers and combo boxes' },
+    {
+        name: 'Cakes', description: 'Birthday, wedding, and celebration cakes',
+        subcategories: [
+            { name: 'Birthday Cakes' }, { name: 'Wedding Cakes' }, { name: 'Photo Cakes' },
+            { name: 'Eggless Cakes' }, { name: 'Cheesecakes' }, { name: 'Pastry Cakes' }
+        ]
+    },
+    {
+        name: 'Cookies & Biscuits', description: 'Freshly baked cookies, biscuits, and rusks',
+        subcategories: [
+            { name: 'Butter Cookies' }, { name: 'Chocolate Chip Cookies' }, { name: 'Nan Khatai' },
+            { name: 'Rusks' }, { name: 'Jeera Biscuits' }
+        ]
+    },
+    {
+        name: 'Pastries', description: 'Puffs, croissants, danishes, and tarts',
+        subcategories: [
+            { name: 'Puffs' }, { name: 'Croissants' }, { name: 'Danish Pastries' },
+            { name: 'Fruit Tarts' }, { name: 'Éclairs' }
+        ]
+    },
+    {
+        name: 'Breads', description: 'Artisan breads, sandwich loaves, buns, and rolls',
+        subcategories: [
+            { name: 'White Bread' }, { name: 'Whole Wheat Bread' }, { name: 'Garlic Bread' },
+            { name: 'Burger Buns' }, { name: 'Multigrain Bread' }
+        ]
+    },
+    {
+        name: 'Indian Sweets', description: 'Gulab jamun, rasgulla, barfi, laddu, and more',
+        subcategories: [
+            { name: 'Gulab Jamun' }, { name: 'Rasgulla' }, { name: 'Kaju Katli' },
+            { name: 'Barfi' }, { name: 'Peda' }, { name: 'Halwa' }, { name: 'Jalebi' }
+        ]
+    },
+    {
+        name: 'Ladoo', description: 'Traditional Indian ladoo varieties',
+        subcategories: [
+            { name: 'Besan Ladoo' }, { name: 'Motichoor Ladoo' }, { name: 'Boondi Ladoo' },
+            { name: 'Coconut Ladoo' }, { name: 'Rava Ladoo' }, { name: 'Churma Ladoo' },
+            { name: 'Dry Fruit Ladoo' }, { name: 'Til Ladoo' }, { name: 'Pinni Ladoo' }
+        ]
+    },
+    {
+        name: 'Dry Fruits & Nuts', description: 'Premium dry fruits, roasted nuts, and trail mixes',
+        subcategories: [
+            { name: 'Almonds' }, { name: 'Cashews' }, { name: 'Pistachios' },
+            { name: 'Walnuts' }, { name: 'Mixed Dry Fruits' }, { name: 'Trail Mix' }
+        ]
+    },
+    {
+        name: 'Chocolates', description: 'Handcrafted chocolates, truffles, and pralines',
+        subcategories: [
+            { name: 'Dark Chocolate' }, { name: 'Milk Chocolate' }, { name: 'Truffles' },
+            { name: 'Pralines' }, { name: 'Chocolate Bars' }
+        ]
+    },
+    {
+        name: 'Ice Cream & Frozen', description: 'Ice creams, kulfis, popsicles, and frozen desserts',
+        subcategories: [
+            { name: 'Ice Cream Tubs' }, { name: 'Kulfi' }, { name: 'Popsicles' },
+            { name: 'Frozen Desserts' }
+        ]
+    },
+    {
+        name: 'Beverages', description: 'Milkshakes, lassi, smoothies, and specialty drinks',
+        subcategories: [
+            { name: 'Milkshakes' }, { name: 'Lassi' }, { name: 'Smoothies' },
+            { name: 'Cold Coffee' }, { name: 'Fresh Juices' }
+        ]
+    },
+    {
+        name: 'Cupcakes & Muffins', description: 'Gourmet cupcakes, muffins, and brownies',
+        subcategories: [
+            { name: 'Vanilla Cupcakes' }, { name: 'Chocolate Cupcakes' }, { name: 'Red Velvet Cupcakes' },
+            { name: 'Blueberry Muffins' }, { name: 'Brownies' }
+        ]
+    },
+    {
+        name: 'Namkeen & Savoury', description: 'Namkeen, samosa, kachori, and savoury snacks',
+        subcategories: [
+            { name: 'Samosa' }, { name: 'Kachori' }, { name: 'Mixture' },
+            { name: 'Mathri' }, { name: 'Chakli' }, { name: 'Sev' }
+        ]
+    },
+    {
+        name: 'Festival Specials', description: 'Diwali, Holi, Rakhi, and seasonal specials',
+        subcategories: [
+            { name: 'Diwali Specials' }, { name: 'Holi Specials' }, { name: 'Rakhi Specials' },
+            { name: 'Christmas Specials' }, { name: 'Eid Specials' }
+        ]
+    },
+    {
+        name: 'Gift Boxes', description: 'Curated gift hampers and combo boxes',
+        subcategories: [
+            { name: 'Sweet Gift Box' }, { name: 'Dry Fruit Gift Box' }, { name: 'Mixed Hamper' },
+            { name: 'Chocolate Gift Box' }, { name: 'Corporate Gifts' }
+        ]
+    },
 ]
 
 export default function AdminProducts() {
@@ -32,12 +118,18 @@ export default function AdminProducts() {
     const [error, setError] = useState('')
     const [toast, setToast] = useState('')
 
-    // ── New‑category modal state ──
+    // ── New-category modal state ──
     const [showCatModal, setShowCatModal] = useState(false)
     const [catForm, setCatForm] = useState({ name: '', description: '' })
     const [catSaving, setCatSaving] = useState(false)
     const [catError, setCatError] = useState('')
     const [seeding, setSeeding] = useState(false)
+
+    // ── Subcategory management state ──
+    const [showSubModal, setShowSubModal] = useState(false)
+    const [subCatId, setSubCatId] = useState(null) // category id for subcategory management
+    const [newSubName, setNewSubName] = useState('')
+    const [subSaving, setSubSaving] = useState(false)
 
     const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
@@ -74,7 +166,7 @@ export default function AdminProducts() {
             // Reload categories
             const res = await api.get('/admin/categories')
             setCategories(res.data.categories || [])
-            showToast('🎉 Default bakery categories added!')
+            showToast('🎉 Default bakery categories with subcategories added!')
         } catch {
             console.warn('Failed to seed default categories')
         }
@@ -83,9 +175,27 @@ export default function AdminProducts() {
 
     useEffect(() => { load() }, [])
 
+    // Get subcategories for the currently selected category
+    const selectedCategory = categories.find(c => c.id === form.category_id || c._id === form.category_id)
+    const subcategories = selectedCategory?.subcategories || []
+
     // ── Product modal handlers ────────────────────────────────
     const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setError(''); setShowModal(true) }
-    const openEdit = p => { setEditing(p); setForm({ name: p.name, description: p.description || '', price: p.price, stock: p.stock, category_id: p.category_id || '', image_url: p.image_url || '', is_active: p.is_active }); setError(''); setShowModal(true) }
+    const openEdit = p => {
+        setEditing(p)
+        setForm({
+            name: p.name,
+            description: p.description || '',
+            price: p.price,
+            stock: p.stock,
+            category_id: p.category_id?._id || p.category_id || '',
+            subcategory_id: p.subcategory_id || '',
+            image_url: p.image_url || '',
+            is_active: p.is_active
+        })
+        setError('')
+        setShowModal(true)
+    }
 
     const handleSave = async e => {
         e.preventDefault()
@@ -128,12 +238,11 @@ export default function AdminProducts() {
     const handleCategoryChange = (e) => {
         const val = e.target.value
         if (val === '__ADD_NEW__') {
-            // Open "Add New Category" modal
             setCatForm({ name: '', description: '' })
             setCatError('')
             setShowCatModal(true)
         } else {
-            setForm(f => ({ ...f, category_id: val }))
+            setForm(f => ({ ...f, category_id: val, subcategory_id: '' }))
         }
     }
 
@@ -152,7 +261,6 @@ export default function AdminProducts() {
                 description: catForm.description.trim() || null
             })
             const newCat = res.data.category
-            // Add to local list and auto-select
             setCategories(prev => [...prev, newCat].sort((a, b) => a.name.localeCompare(b.name)))
             setForm(f => ({ ...f, category_id: newCat.id }))
             setShowCatModal(false)
@@ -162,6 +270,39 @@ export default function AdminProducts() {
         }
         setCatSaving(false)
     }
+
+    // ── Subcategory management handlers ───────────────────────
+    const openSubManager = (catId) => {
+        setSubCatId(catId)
+        setNewSubName('')
+        setShowSubModal(true)
+    }
+
+    const handleAddSubcategory = async () => {
+        if (!newSubName.trim()) return
+        setSubSaving(true)
+        try {
+            const res = await api.post(`/admin/categories/${subCatId}/subcategories`, { name: newSubName.trim() })
+            const updatedCat = res.data.category
+            setCategories(prev => prev.map(c => c.id === updatedCat.id || c._id === updatedCat._id ? { ...updatedCat, id: updatedCat._id } : c))
+            setNewSubName('')
+            showToast('Subcategory added!')
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to add subcategory')
+        }
+        setSubSaving(false)
+    }
+
+    const handleRemoveSubcategory = async (subId) => {
+        try {
+            const res = await api.delete(`/admin/categories/${subCatId}/subcategories/${subId}`)
+            const updatedCat = res.data.category
+            setCategories(prev => prev.map(c => c.id === updatedCat.id || c._id === updatedCat._id ? { ...updatedCat, id: updatedCat._id } : c))
+            showToast('Subcategory removed')
+        } catch { }
+    }
+
+    const managedCategory = categories.find(c => c.id === subCatId || c._id === subCatId)
 
     return (
         <div className="flex min-h-screen bg-cream-50">
@@ -227,7 +368,12 @@ export default function AdminProducts() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className="badge badge-brown text-xs">{p.categories?.name || '—'}</span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="badge badge-brown text-xs">{p.categories?.name || '—'}</span>
+                                                {p.subcategory_name && (
+                                                    <span className="badge badge-blue text-xs">{p.subcategory_name}</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-4 font-semibold text-brown-700">₹{p.price}</td>
                                         <td className="px-4 py-4">
@@ -308,7 +454,16 @@ export default function AdminProducts() {
 
                                 {/* ── Category picker with "Add New" option ── */}
                                 <div>
-                                    <label className="block text-sm font-medium text-brown-700 mb-1.5">Category *</label>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-sm font-medium text-brown-700">Category *</label>
+                                        {form.category_id && form.category_id !== '__ADD_NEW__' && (
+                                            <button type="button"
+                                                onClick={() => openSubManager(form.category_id)}
+                                                className="text-xs text-brown-500 hover:text-brown-700 transition-colors">
+                                                ⚙️ Manage Subcategories
+                                            </button>
+                                        )}
+                                    </div>
                                     <select
                                         value={form.category_id}
                                         onChange={handleCategoryChange}
@@ -316,24 +471,41 @@ export default function AdminProducts() {
                                         className="input"
                                     >
                                         <option value="">Select category…</option>
-
-                                        {/* Divider — existing categories */}
                                         {categories.map(c => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
                                         ))}
-
-                                        {/* Separator + "Add New" */}
                                         <option disabled>──────────────</option>
                                         <option value="__ADD_NEW__">＋ Add New Category…</option>
                                     </select>
 
-                                    {/* Show currently selected category chip */}
                                     {form.category_id && form.category_id !== '__ADD_NEW__' && (
                                         <div className="mt-2 inline-flex items-center gap-1.5 bg-brown-50 text-brown-700 text-xs font-medium px-3 py-1.5 rounded-full border border-brown-200">
                                             🏷️ {categories.find(c => c.id === form.category_id)?.name || 'Selected'}
                                         </div>
                                     )}
                                 </div>
+
+                                {/* ── Subcategory picker ── */}
+                                {subcategories.length > 0 && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-brown-700 mb-1.5">Subcategory</label>
+                                        <select
+                                            value={form.subcategory_id}
+                                            onChange={e => setForm(f => ({ ...f, subcategory_id: e.target.value }))}
+                                            className="input"
+                                        >
+                                            <option value="">No subcategory</option>
+                                            {subcategories.map(s => (
+                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                        {form.subcategory_id && (
+                                            <div className="mt-2 inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full border border-blue-200">
+                                                📂 {subcategories.find(s => s._id === form.subcategory_id)?.name || ''}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="block text-sm font-medium text-brown-700 mb-1.5">Image URL</label>
@@ -421,7 +593,7 @@ export default function AdminProducts() {
                                 </div>
                             </form>
 
-                            {/* Quick‑add existing default categories (if less than 3 exist) */}
+                            {/* Quick-add existing default categories (if less than 3 exist) */}
                             {categories.length < 3 && (
                                 <div className="mt-5 pt-4 border-t border-cream-200">
                                     <p className="text-xs text-brown-400 mb-2">Or quickly add all bakery defaults:</p>
@@ -434,6 +606,69 @@ export default function AdminProducts() {
                                     </button>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ════════════════════════════════════════════════ */}
+                {/* Subcategory Manager Modal                       */}
+                {/* ════════════════════════════════════════════════ */}
+                {showSubModal && managedCategory && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+                        onClick={(e) => { if (e.target === e.currentTarget) setShowSubModal(false) }}>
+                        <div className="bg-white rounded-3xl p-7 w-full max-w-md shadow-warm-lg animate-fade-in max-h-[80vh] overflow-y-auto">
+                            <div className="flex items-center gap-3 mb-5">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-xl">
+                                    📂
+                                </div>
+                                <div>
+                                    <h3 className="font-display text-xl font-bold text-brown-800">Subcategories</h3>
+                                    <p className="text-xs text-brown-400">Manage subcategories for <strong>{managedCategory.name}</strong></p>
+                                </div>
+                            </div>
+
+                            {/* Existing subcategories */}
+                            <div className="space-y-2 mb-4">
+                                {managedCategory.subcategories?.length > 0 ? (
+                                    managedCategory.subcategories.map(sub => (
+                                        <div key={sub._id} className="flex items-center justify-between bg-cream-50 rounded-xl px-4 py-2.5">
+                                            <span className="text-sm font-medium text-brown-700">{sub.name}</span>
+                                            <button
+                                                onClick={() => handleRemoveSubcategory(sub._id)}
+                                                className="text-red-400 hover:text-red-600 text-sm transition-colors"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-center text-brown-400 text-sm py-4">No subcategories yet</p>
+                                )}
+                            </div>
+
+                            {/* Add new subcategory */}
+                            <div className="flex gap-2">
+                                <input
+                                    value={newSubName}
+                                    onChange={e => setNewSubName(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddSubcategory() } }}
+                                    className="input flex-1"
+                                    placeholder="New subcategory name…"
+                                />
+                                <button
+                                    onClick={handleAddSubcategory}
+                                    disabled={subSaving || !newSubName.trim()}
+                                    className="btn-primary px-4 disabled:opacity-60"
+                                >
+                                    {subSaving ? '…' : '+ Add'}
+                                </button>
+                            </div>
+
+                            <div className="flex justify-end mt-5">
+                                <button onClick={() => setShowSubModal(false)} className="btn-secondary">
+                                    Done
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

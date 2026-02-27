@@ -90,7 +90,10 @@ export default function AdminLogin() {
                             ) : 'Sign In to Admin'}
                         </button>
                     </form>
-                    <div className="mt-4 text-center">
+                    <div className="mt-4 flex items-center justify-between">
+                        <Link to="/admin/forgot-password" className="text-sm text-brown-400 hover:text-brown-600 transition-colors">
+                            Forgot password?
+                        </Link>
                         <Link to="/" className="text-sm text-brown-400 hover:text-brown-600 transition-colors">
                             ← Back to Store
                         </Link>
